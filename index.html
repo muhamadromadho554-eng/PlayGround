@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#080b0c" />
+  <meta name="description" content="Last Light — a twin-stick zombie survival game built for phones and tablets. Move, aim, dash, and hold the line." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Last Light" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>LAST LIGHT — Zombie Survival</title>
+</head>
+<body>
+  <main id="app">
+    <canvas id="game" aria-label="Last Light zombie survival game"></canvas>
+
+    <div id="hud" class="hud is-hidden" aria-live="off">
+      <div class="hud-top">
+        <div class="vitals panel-cut">
+          <div class="vitals-head">
+            <span class="eyebrow">VITALS</span>
+            <span id="hpText" class="vitals-number">100</span>
+          </div>
+          <div class="health-track">
+            <div id="hpFill" class="health-fill"></div>
+            <div class="health-ticks"></div>
+          </div>
+          <div class="ammo-line">
+            <span id="ammoText" class="ammo-number">12</span>
+            <span class="ammo-cap">/ 12</span>
+            <span class="ammo-label">ROUNDS</span>
+            <span id="reloadTrack" class="reload-track"><i id="reloadFill"></i></span>
+          </div>
+        </div>
+
+        <div class="wave-block">
+          <div class="wave-kicker">WAVE</div>
+          <div id="waveNum" class="wave-number">01</div>
+          <div id="hostiles" class="hostiles">9 HOSTILES</div>
+        </div>
+
+        <div class="score-block">
+          <div class="score-kicker">SCORE</div>
+          <div id="score" class="score-number">000000</div>
+          <div id="combo" class="combo">&nbsp;</div>
+        </div>
+      </div>
+
+      <button id="pauseBtn" class="icon-btn pause-btn" type="button" aria-label="Pause game">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>
+      </button>
+
+      <div id="tiltBadge" class="tilt-badge is-hidden">
+        <span class="tilt-dot"></span>TILT
+      </div>
+
+      <div id="dashBtn" class="dash-btn" role="button" tabindex="0" aria-label="Dash">
+        <svg class="dash-ring" viewBox="0 0 72 72" aria-hidden="true">
+          <circle class="dash-ring-bg" cx="36" cy="36" r="33"></circle>
+          <circle id="dashRing" class="dash-ring-fill" cx="36" cy="36" r="33"></circle>
+        </svg>
+        <span class="dash-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2 5 14h5l-1 8 8-12h-5l1-8Z" /></svg>
+        </span>
+        <span class="dash-label">DASH</span>
+      </div>
+
+      <div id="desktopHint" class="desktop-hint is-hidden">WASD MOVE <span>·</span> MOUSE AIM <span>·</span> HOLD TO FIRE <span>·</span> SPACE DASH <span>·</span> R RELOAD</div>
+
+      <div id="waveBanner" class="wave-banner" aria-hidden="true">
+        <span>WAVE</span><b>01</b><i>INCOMING</i>
+      </div>
+
+      <div id="toast" class="toast" role="status"></div>
+      <div id="damageFlash" class="damage-flash" aria-hidden="true"></div>
+      <div id="lowHealth" class="low-health" aria-hidden="true"></div>
+    </div>
+
+    <section id="menu" class="overlay menu">
+      <div class="menu-grain" aria-hidden="true"></div>
+      <div class="menu-content">
+        <div class="kicker"><span></span>SURVIVAL PROTOCOL<span></span></div>
+        <h1 class="logo" aria-label="Last Light">
+          <span class="logo-last">LAST</span>
+          <span class="logo-light">LIGHT</span>
+          <span class="logo-scratch" aria-hidden="true"></span>
+        </h1>
+        <p class="tagline">The dead don't sleep. Neither do you.</p>
+
+        <div class="best-line">
+          <span>BEST</span><b id="bestScore">000000</b>
+          <i></i>
+          <span>WAVE</span><b id="bestWave">0</b>
+        </div>
+
+        <button id="startBtn" class="btn-primary" type="button" aria-label="Start Game">
+          <span class="btn-sheen" aria-hidden="true"></span>
+          <span class="btn-label">START GAME</span>
+          <span class="btn-sub">TAP TO DEPLOY</span>
+        </button>
+
+        <div class="control-legend" aria-label="Controls">
+          <div class="legend-item">
+            <span class="stick-mini"><i></i></span>
+            <span><b>MOVE</b><small>LEFT STICK</small></span>
+          </div>
+          <div class="legend-item">
+            <span class="stick-mini"><i></i></span>
+            <span><b>AIM + FIRE</b><small>RIGHT STICK</small></span>
+          </div>
+          <div class="legend-item">
+            <span class="bolt-mini">ϟ</span>
+            <span><b>DASH</b><small>DODGE THE HORDE</small></span>
+          </div>
+        </div>
+
+        <div class="menu-toggles">
+          <button id="tiltBtn" class="toggle" type="button" aria-pressed="false">
+            <span class="toggle-led"></span>
+            <span class="toggle-copy"><b>TILT</b><small id="tiltState">OFF</small></span>
+          </button>
+          <button id="soundBtn" class="toggle" type="button" aria-pressed="true">
+            <span class="toggle-led"></span>
+            <span class="toggle-copy"><b>SOUND</b><small id="soundState">ON</small></span>
+          </button>
+        </div>
+        <p id="motionNote" class="motion-note is-hidden">iOS will ask for motion access when you enable tilt.</p>
+      </div>
+      <footer class="menu-footer">
+        <span>HOLD THE LINE UNTIL DAWN</span>
+        <span class="footer-mark">LL // 01</span>
+      </footer>
+    </section>
+
+    <section id="upgrade" class="overlay modal is-hidden" aria-labelledby="upgradeTitle">
+      <div class="modal-panel upgrade-panel">
+        <div class="panel-scan" aria-hidden="true"></div>
+        <div class="eyebrow" id="upgradeKicker">WAVE 01 CLEARED</div>
+        <h2 id="upgradeTitle">CHOOSE A SUPPLY DROP</h2>
+        <p class="panel-sub">One upgrade. Make it count — the horde adapts.</p>
+        <div id="perkCards" class="perk-cards"></div>
+        <div class="panel-hint">TAP A CARD <span>·</span> OR PRESS 1 / 2 / 3</div>
+      </div>
+    </section>
+
+    <section id="pause" class="overlay modal is-hidden" aria-labelledby="pauseTitle">
+      <div class="modal-panel pause-panel">
+        <div class="eyebrow">SIGNAL PAUSED</div>
+        <h2 id="pauseTitle">HOLD YOUR BREATH</h2>
+        <div class="pause-readout">
+          <div><span>WAVE</span><b id="pauseWave">01</b></div>
+          <div><span>SCORE</span><b id="pauseScore">000000</b></div>
+          <div><span>KILLS</span><b id="pauseKills">0</b></div>
+        </div>
+        <div class="pause-actions">
+          <button id="resumeBtn" class="btn-primary btn-compact" type="button"><span class="btn-label">RESUME</span></button>
+          <button id="pauseTiltBtn" class="btn-ghost" type="button">RECALIBRATE TILT</button>
+          <button id="pauseSoundBtn" class="btn-ghost" type="button">SOUND: ON</button>
+          <button id="restartBtn" class="btn-ghost" type="button">RESTART RUN</button>
+          <button id="quitBtn" class="btn-ghost btn-danger" type="button">QUIT TO MENU</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameover" class="overlay modal death-screen is-hidden" aria-labelledby="deathTitle">
+      <div class="death-glow" aria-hidden="true"></div>
+      <div class="modal-panel death-panel">
+        <div class="eyebrow danger">SIGNAL LOST</div>
+        <h2 id="deathTitle" class="death-title">YOU DIED</h2>
+        <p class="death-sub">The night takes another one.</p>
+        <div class="death-stats">
+          <div><span>WAVE</span><b id="finalWave">01</b></div>
+          <div><span>KILLS</span><b id="finalKills">0</b></div>
+          <div><span>TIME</span><b id="finalTime">00:00</b></div>
+          <div class="wide"><span>SCORE</span><b id="finalScore">000000</b></div>
+        </div>
+        <div id="newBest" class="new-best is-hidden">NEW BEST</div>
+        <button id="retryBtn" class="btn-primary" type="button" aria-label="Play Again">
+          <span class="btn-sheen" aria-hidden="true"></span>
+          <span class="btn-label">REDEPLOY</span>
+          <span class="btn-sub">ONE MORE RUN</span>
+        </button>
+        <button id="toMenuBtn" class="btn-ghost" type="button">MAIN MENU</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
